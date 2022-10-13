@@ -25,20 +25,40 @@ with open(csv_file, 'r') as f:
     print('End date =', End_date)
 
 
-website = 'https://uplevel.interviewkickstart.com/cohorts/'
-# driver.get(website)
+weblinkcohorts = 'https://uplevel.interviewkickstart.com/cohorts/'
+weblinksGC = 'https://uplevel.interviewkickstart.com/app/a/global-calendar'
 
-# SEARCHBOX = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[2]/div/div[1]/div[3]/div/label/input')
-# SEARCHBOX.click()
-# SEARCHBOX.clear()
-# SEARCHBOX.send_keys(Cohort_name)
-# SEARCHBOX.send_keys(Keys.RETURN)
-#
-# time.sleep(2)
-#
-# TABLE = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[2]/div/div[2]/table/tbody')
-# print(len(TABLE.find_elements(By.TAG_NAME, 'h6')), 'data rows found')
-# TABLE_TEXTS = list((item.text for item in TABLE.find_elements(By.TAG_NAME, 'h6')))
+def fill_form(xpath, text):
+    OBJ = driver.find_element(By.XPATH, xpath)
+    OBJ.click()
+    OBJ.clear()
+    OBJ.send_keys(text)
+    OBJ.send_keys(Keys.RETURN)
+    time.sleep(1)
+
+def search_for_cohort():
+    driver.get(weblinkcohorts)
+
+    fill_form('/html/body/div[1]/div[2]/div/div[2]/div/div[1]/div[3]/div/label/input', Cohort_name)
+    time.sleep(2)
+
+    print("Reading output")
+
+    TABLE = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[2]/div/div[2]/table/tbody')
+    print(len(TABLE.find_elements(By.TAG_NAME, 'h6')), 'data rows found')
+
+    TABLE_TEXTS = list((item.text for item in TABLE.find_elements(By.TAG_NAME, 'h6')))
+
+    if Cohort_name + ' [do not use]' in TABLE_TEXTS:  # check if found upon searching
+        print('Search results')
+        for item in TABLE.find_elements(By.TAG_NAME, 'h6'):
+            print(item.text)
+            if item.text == str(Cohort_name + ' [do not use]'):
+                print("Clicking on", item.text)
+                item.click()
+                break
+        time.sleep(1)
+        discarding_cohort()
 
 def discarding_cohort():
     COHORT_NAME = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[2]/form/div[2]/div/div/div[1]/input')
@@ -63,28 +83,10 @@ def discarding_cohort():
     SAVE.click()
     time.sleep(1)
 
-# if Cohort_name + ' [do not use]' in TABLE_TEXTS: # check in found upon searching
-#     print('Search results')
-#     for item in TABLE.find_elements(By.TAG_NAME, 'h6'):
-#         print(item.text)
-#         if item.text == str(Cohort_name + ' [do not use]'):
-#             print("Clicking on", item.text)
-#             item.click()
-#             break
-#     time.sleep(1)
-#     discarding_cohort()
-
-# driver.get(website)
-
-def fill_form(xpath, text):
-    OBJ = driver.find_element(By.XPATH, xpath)
-    OBJ.click()
-    OBJ.clear()
-    OBJ.send_keys(text)
-    OBJ.send_keys(Keys.RETURN)
-    time.sleep(1)
-
 def create_new_cohort():
+    driver.get(weblinkcohorts)
+    time.sleep(3)
+
     # CREATE_NEW = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[1]/div[2]/a[1]')
     # CREATE_NEW.click()
 
@@ -111,8 +113,36 @@ def create_new_cohort():
     # SAVE = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[2]/form/div[3]/div/div/div/button')
     # SAVE.click()
 
-create_new_cohort()
+def scheduling():
+    # driver.get(weblinksGC)
+    # time.sleep(3)
+
+    temp = {'resourcecollection': 'Resource Collection',
+            'feedbacktemplate': 'Feedback',
+            'class': 'Class',
+            'test': 'Test',
+            'video': 'Video',
+            'instruction': 'Instruction'}
+
+    for i in range(len(data)):
+        SCHEDULE = driver.find_element(By.XPATH, '/html/body/div[1]/div[1]/div[3]/div[2]/div/div/button/span[2]')
+        SCHEDULE.click()
+
+        TABLE = driver.find_element(By.XPATH, '/html/body/div[2]/div[3]/ul/div/div')
+        for item in TABLE.find_elements(By.TAG_NAME, 'div'):
+            if item.text == temp[data['Type Name'][i]]:
+                print(f'Cliicking {item.text}')
+                item.click()
+                break
 
 
+
+        break
+
+
+
+
+
+scheduling()
 
 quit()
