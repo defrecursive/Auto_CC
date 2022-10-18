@@ -4,6 +4,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 import pandas as pd
 import os
+import datetime
 
 # os.popen('chrome.exe --remote-debugging-port=9222 --user-data-dir="C:\\Users\\BETA\\Desktop"')
 
@@ -24,17 +25,34 @@ with open(csv_file, 'r') as f:
     print('Start date =', Start_date)
     print('End date =', End_date)
 
-
 weblinkcohorts = 'https://uplevel.interviewkickstart.com/cohorts/'
 weblinksGC = 'https://uplevel.interviewkickstart.com/app/a/global-calendar'
+
+
+def find_and_click(xpath):
+    time.sleep(0.5)
+    ITEM = driver.find_element(By.XPATH, xpath)
+    time.sleep(0.5)
+    ITEM.click()
+
 
 def fill_form(xpath, text):
     OBJ = driver.find_element(By.XPATH, xpath)
     OBJ.click()
     OBJ.clear()
     OBJ.send_keys(text)
+    time.sleep(1)
     OBJ.send_keys(Keys.RETURN)
     time.sleep(1)
+
+
+def down_enter(xpath):
+    time.sleep(0.5)
+    ELEMENT = driver.find_element(By.XPATH, xpath)
+    ELEMENT.send_keys(Keys.DOWN)
+    ELEMENT.send_keys(Keys.RETURN)
+    time.sleep(0.5)
+
 
 def search_for_cohort():
     driver.get(weblinkcohorts)
@@ -60,6 +78,7 @@ def search_for_cohort():
         time.sleep(1)
         discarding_cohort()
 
+
 def discarding_cohort():
     COHORT_NAME = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[2]/form/div[2]/div/div/div[1]/input')
     COHORT_NAME.click()
@@ -67,8 +86,7 @@ def discarding_cohort():
     COHORT_NAME.send_keys(Cohort_name + ' [do not use]')
     COHORT_NAME.send_keys(Keys.RETURN)
 
-    ISENROLLMENTCLOSED = driver.find_element(By.XPATH,
-                                             '/html/body/div[1]/div[2]/div/div[2]/form/div[2]/div/div/div[4]/div[2]/div/div/label')
+    ISENROLLMENTCLOSED = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[2]/form/div[2]/div/div/div[4]/div[2]/div/div/label')
     if ISENROLLMENTCLOSED.text == "No":
         ISENROLLMENTCLOSED.click()
         time.sleep(1)
@@ -83,6 +101,7 @@ def discarding_cohort():
     SAVE.click()
     time.sleep(1)
 
+
 def create_new_cohort():
     driver.get(weblinkcohorts)
     time.sleep(3)
@@ -92,7 +111,8 @@ def create_new_cohort():
 
     fill_form('/html/body/div[1]/div[2]/div/div[2]/form/div[2]/div/div/div[1]/input', Cohort_name)
 
-    COHORT_COUNTRY = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[2]/form/div[2]/div/div/div[2]/span/span[1]/span/span[1]')# dropdown
+    COHORT_COUNTRY = driver.find_element(By.XPATH,
+                                         '/html/body/div[1]/div[2]/div/div[2]/form/div[2]/div/div/div[2]/span/span[1]/span/span[1]')  # dropdown
     COHORT_COUNTRY.click()
     time.sleep(1)
     USA = driver.find_element(By.XPATH, '/html/body/span/span/span[2]/ul/li[2]')
@@ -103,7 +123,8 @@ def create_new_cohort():
     fill_form('/html/body/div[1]/div[2]/div/div[2]/form/div[2]/div/div/div[3]/div[2]/div/input', End_date)
     fill_form('/html/body/div[1]/div[2]/div/div[2]/form/div[2]/div/div/div[4]/div[1]/div/input', '50')
 
-    ASSOCIATEDWITHPROGRAM = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[2]/form/div[2]/div/div/div[5]/span/span[1]/span/span[1]/span')
+    ASSOCIATEDWITHPROGRAM = driver.find_element(By.XPATH,
+                                                '/html/body/div[1]/div[2]/div/div[2]/form/div[2]/div/div/div[5]/span/span[1]/span/span[1]/span')
     ASSOCIATEDWITHPROGRAM.click()
     time.sleep(1)
     fill_form('/html/body/span/span/span[1]/input', 'Engineering Management Program')
@@ -112,6 +133,7 @@ def create_new_cohort():
 
     # SAVE = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[2]/form/div[3]/div/div/div/button')
     # SAVE.click()
+
 
 def scheduling():
     # driver.get(weblinksGC)
@@ -122,7 +144,12 @@ def scheduling():
             'class': 'Class',
             'test': 'Test',
             'video': 'Video',
-            'instruction': 'Instruction'}
+            'instruction': 'Instruction',
+
+            'On Scheduled Date': 'Active on Schedule',
+            'Always active': 'Always Active',
+            'Conditional': 'Conditional'
+            }
 
     for i in range(len(data)):
         SCHEDULE = driver.find_element(By.XPATH, '/html/body/div[1]/div[1]/div[3]/div[2]/div/div/button/span[2]')
@@ -131,16 +158,65 @@ def scheduling():
         TABLE = driver.find_element(By.XPATH, '/html/body/div[2]/div[3]/ul/div/div')
         for item in TABLE.find_elements(By.TAG_NAME, 'div'):
             if item.text == temp[data['Type Name'][i]]:
-                print(f'Cliicking {item.text}')
+                print(f'Clicking {item.text}')
                 item.click()
                 break
 
+        TOPIC = '/html/body/div[2]/div[3]/div/div[1]/div[1]/div/div[1]/div[2]/div[1]/div/div/div/input'
+        find_and_click(TOPIC)
+        fill_form(TOPIC, data['Topic Name'][i])
+        down_enter(TOPIC)
 
+        RESOURCE = '/html/body/div[2]/div[3]/div/div[1]/div[1]/div/div[1]/div[2]/div[2]/div/div/div/input'
+        find_and_click(RESOURCE)
+        fill_form(RESOURCE, data['Resource Name'][i])
+        down_enter(RESOURCE)
+
+        START_DATE = '/html/body/div[2]/div[3]/div/div[1]/div[1]/div/div[2]/div[2]/div[1]/div/div/input'
+        find_and_click(START_DATE)
+        Start_date = datetime.datetime.strptime(data['Start Date'][i], '%Y-%m-%d').strftime('%m/%d/%Y')
+        fill_form(START_DATE, Start_date)
+
+        START_TIME = '/html/body/div[2]/div[3]/div/div[1]/div[1]/div/div[2]/div[2]/div[2]/div/div/div/input'
+        find_and_click(START_TIME)
+        Start_time = datetime.datetime.strptime(data['Start Time'][i], '%H:%M:%S').strftime('%H:%M:%S')
+        fill_form(START_TIME, Start_time)
+
+        if len(str(data['End Time'][i])) != 3:
+            print('Has End time')
+            ENDTIMETOGGLE = '/html/body/div[2]/div[3]/div/div[1]/div[1]/div/div[2]/div[1]/div/label/span[2]/span/div'
+            find_and_click(ENDTIMETOGGLE)
+
+            END_DATE = '/html/body/div[2]/div[3]/div/div[1]/div[1]/div/div[2]/div[2]/div[3]/div/div/input'
+            find_and_click(END_DATE)
+            End_date = datetime.datetime.strptime(data['End Date'][i], '%Y-%m-%d').strftime('%m/%d/%Y')
+            fill_form(END_DATE, End_date)
+
+            END_TIME = '/html/body/div[2]/div[3]/div/div[1]/div[1]/div/div[2]/div[2]/div[4]/div/div/div/input'
+            find_and_click(END_TIME)
+            End_time = datetime.datetime.strptime(data['End Time'][i], '%H:%M:%S').strftime('%H:%M:%S')
+            fill_form(END_TIME, End_time)
+        else:
+            print('does not have end time')
+
+        FOR = '/html/body/div[2]/div[3]/div/div[1]/div[1]/div/div[3]/div[2]/div/div/input'
+        fill_form(FOR, Cohort_name)
+        down_enter(FOR)
+
+        ACTIVE = '/html/body/div[2]/div[3]/div/div[1]/div[1]/div/div[4]/div[2]/div[2]'
+        for item in driver.find_element(By.XPATH, ACTIVE).find_elements(By.TAG_NAME, 'label'):
+            if item.text == temp[data['Activity Status'][i]]:  # and data['Activity Status'][i] != 'Conditional'
+                item.click()
+                break
+
+        # INSTRUCTIONS = '/html/body/div[2]/div[3]/div/div[1]/div[1]/div/div[5]/div[2]/div/div/div/div/div/input'
+        # fill_form(INSTRUCTIONS, data['Activity'][i])
+        # down_enter(INSTRUCTIONS)
+        #
+        # ADDTIONAL_DATA = '/html/body/div[2]/div[3]/div/h2/div/div/div[1]/div/div/div/button[2]'
+        # find_and_click(ADDTIONAL_DATA)
 
         break
-
-
-
 
 
 scheduling()
